@@ -4,6 +4,7 @@ import os
 import io
 import uuid
 import base64
+import timeit
 import PIL.Image
 
 from dotenv import load_dotenv
@@ -69,10 +70,10 @@ def buildPrompt(kwargs):
 			context_text += text_element.text
 
 	prompt_template = f"""
-    Answer the question based only on the following context, which can include text, tables, and the below image.
-    Context: {context_text}
-    Question: {user_question}
-	"""
+    	Answer the question based only on the following context, which can include text, tables, and the below image.
+    	Context: {context_text}
+    	Question: {user_question}
+		"""
 
 	prompt_content = [{"type": "text", "text": prompt_template}]
 	if len(docs_by_type["images"]) > 0:
@@ -235,6 +236,7 @@ if False:
 
 ### Finally, Build the RAG Pipeline ###
 
+start = timeit.default_timer()
 ragChain = (
 	{
 		"context": retriever | RunnableLambda(parseDocs),
@@ -245,4 +247,27 @@ ragChain = (
 	| StrOutputParser())
 
 ragResponse = ragChain.invoke("What is the Attention mechanism?")
-print(ragResponse)
+stop = timeit.default_timer()
+print("Time taken is: ", round(stop-start, 2), "\n\n", ragResponse)
+
+
+ragSourceChain = {
+		"context": retriever | RunnableLambda(parseDocs),
+		"question": RunnablePassthrough(),
+	} | RunnablePassthrough().assign(
+		response=(
+			RunnableLambda(buildPrompt)
+			| ChatOpenAI(model="gpt-4o-mini")
+			| StrOutputParser() ) )
+
+
+
+ragSourceResponse = ragSourceChain.invoke("Describe the Multi-head Attention Architecture?")
+print(ragSourceResponse)
+
+if True:
+	print("\n\n Context:")
+	for text in ragSourceResponse['context']['texts']:
+		print(text.text, "\n\n")
+	for image in ragSourceResponse['context']['images']:
+		displayBase64(image)
