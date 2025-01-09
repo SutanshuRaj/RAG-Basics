@@ -64,9 +64,27 @@ def buildPrompt(kwargs):
 	user_question = kwargs['question']
 
 	context_text = " "
-	
+	if len(docs_by_type["texts"]) > 0:
+		for text_element in docs_by_type["texts"]:
+			context_text += text_element.text
 
-	pass
+	prompt_template = f"""
+    Answer the question based only on the following context, which can include text, tables, and the below image.
+    Context: {context_text}
+    Question: {user_question}
+	"""
+
+	prompt_content = [{"type": "text", "text": prompt_template}]
+	if len(docs_by_type["images"]) > 0:
+		for image in docs_by_type["images"]:
+			prompt_content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{image}"},
+                }
+            )
+	
+	return ChatPromptTemplate.from_messages([HumanMessage(content=prompt_content)])
 
 
 
@@ -217,3 +235,14 @@ if False:
 
 ### Finally, Build the RAG Pipeline ###
 
+ragChain = (
+	{
+		"context": retriever | RunnableLambda(parseDocs),
+		"question": RunnablePassthrough(),
+	}
+	| RunnableLambda(buildPrompt)
+	| ChatOpenAI(model='gpt-4o-mini')
+	| StrOutputParser())
+
+ragResponse = ragChain.invoke("What is the Attention mechanism?")
+print(ragResponse)
