@@ -265,7 +265,7 @@ ragSourceChain = {
 ragSourceResponse = ragSourceChain.invoke("Describe the Multi-head Attention Architecture?")
 print(ragSourceResponse)
 
-if True:
+if False:
 	print("\n\n Context:")
 	for text in ragSourceResponse['context']['texts']:
 		print(text.text, "\n\n")
