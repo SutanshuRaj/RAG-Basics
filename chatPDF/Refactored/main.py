@@ -3,7 +3,9 @@ from core.document_processor import DocumentProcessor
 from core.rag_pipeline import RAGPipeline
 from model.vector_store import VectorStoreManager
 from utils.helpers import ImageUtils
+
 from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import timeit
@@ -28,7 +30,7 @@ def main():
     Table or text chunk: {element}
     """
     
-    model = ChatGroq(temperature=0.5, model="llama-3.1-8b-instant")
+    model = ChatGroq(temperature=0.5, model="llama-3.1-8b-instant", stop_sequences=None)
     summary_chain = (
         {"element": lambda x: x}
         | ChatPromptTemplate.from_template(prompt_text)
@@ -42,10 +44,30 @@ def main():
         [table.metadata.text_as_html for table in processed_docs["tables"]],
         {"max_concurrency": 3}
     )
+
+    prompt_image = """
+    Describe the image in detail. For context,
+    the image is part of a research paper explaining the transformers architecture. 
+    Be specific about graphs, such as bar plots.
+    """
+
+    messages = [(
+            "user",
+            [
+                {"type": "text", "text": prompt_image},
+                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,{image}"}},
+            ],
+        )
+    ]
+
+    prompt = ChatPromptTemplate.from_messages(messages)
+    summary_imgChain = prompt | ChatOpenAI(model='gpt-4o-mini') | StrOutputParser()
+    image_summaries = summary_imgChain.batch(images)
+
     
     # Add to vector store
     vector_store.add_documents(processed_docs["texts"], text_summaries)
-    # vector_store.add_documents(images, image_summaries)
+    vector_store.add_images(images, image_summaries)
     
     # Create and use RAG pipeline
     rag = RAGPipeline(vector_store.retriever)

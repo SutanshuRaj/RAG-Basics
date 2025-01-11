@@ -148,7 +148,7 @@ Table or text chunk: {element}
 prompt = ChatPromptTemplate.from_template(prompt_text)
 
 # Chain of Thought.
-model = ChatGroq(temperature=0.5, model="llama-3.1-8b-instant")
+model = ChatGroq(temperature=0.5, model="llama-3.1-8b-instant", stop_sequences=None)
 summaryChain = {"element": lambda x: x} | prompt | model | StrOutputParser()
 
 
@@ -161,7 +161,7 @@ summarizeTable = summaryChain.batch(tableHTML, {"max_concurrency": 3})
 # Quick Sanity Check.
 print(summarizeText[0])
 
-prompt_template = """Describe the image in detail. For context,
+prompt_image = """Describe the image in detail. For context,
                   the image is part of a research paper explaining the transformers architecture. 
                   Be specific about graphs, such as bar plots."""
 
@@ -169,7 +169,7 @@ messages = [
 	(
 		"user",
 		[
-			{"type": "text", "text": prompt_template},
+			{"type": "text", "text": prompt_image},
 			{"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,{image}"}},
 		],
 	)
@@ -209,8 +209,8 @@ retriever.docstore.mset(list(zip(txt_id, texts)))
 
 
 # Add the Tables.
-# table_id = [str(uuid.uuid4()) for _ in tables]
 
+# table_id = [str(uuid.uuid4()) for _ in tables]
 # summary_Table = [
 # 	Document(page_content=summary, metadata={id_key: table_id[i]}) for i, summary in enumerate(summarizeTable) ]
 # retriever.vectorstore.add_documents(summary_Table)
@@ -262,10 +262,11 @@ ragSourceChain = {
 
 
 
-ragSourceResponse = ragSourceChain.invoke("Describe the Multi-head Attention Architecture?")
+# ragSourceResponse = ragSourceChain.invoke("Describe the Multi-head Attention Architecture?")
+ragSourceResponse = ragSourceChain.invoke("Describe the Transformer Model Architecture?")
 print(ragSourceResponse)
 
-if False:
+if True:
 	print("\n\n Context:")
 	for text in ragSourceResponse['context']['texts']:
 		print(text.text, "\n\n")

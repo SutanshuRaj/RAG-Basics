@@ -32,3 +32,15 @@ class VectorStoreManager:
         
         self.retriever.vectorstore.add_documents(summary_docs)
         self.retriever.docstore.mset(list(zip(doc_ids, documents)))
+
+    def add_images(self, images, summaries: List[str]) -> None:
+        """Add images and their summaries to the vector store."""
+        img_ids = [str(uuid.uuid4()) for _ in images]
+        
+        summary_imgs = [
+            Document(page_content=summary, metadata={self.id_key: img_ids[i]})
+            for i, summary in enumerate(summaries)
+        ]
+        
+        self.retriever.vectorstore.add_documents(summary_imgs)
+        self.retriever.docstore.mset(list(zip(img_ids, images)))
