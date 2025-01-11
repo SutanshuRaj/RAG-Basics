@@ -2,6 +2,7 @@ from unstructured.partition.pdf import partition_pdf
 from typing import List, Dict, Any
 from config.settings import Settings
 
+
 class DocumentProcessor:
     def __init__(self, settings: Settings):
         self.settings = settings

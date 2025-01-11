@@ -71,14 +71,21 @@ def main():
     
     # Create and use RAG pipeline
     rag = RAGPipeline(vector_store.retriever)
-    chain = rag.create_chain()
-    
+    # chain = rag.create_chain()
+    chain = rag.create_source_chain()
+
     start = timeit.default_timer()
-    response = chain.invoke("What is the Attention mechanism?")
+    # response = chain.invoke("What is the Attention mechanism?")
+    response = chain.invoke("Describe the Transformer Model Architecture?")    
     stop = timeit.default_timer()
     
     print(f"Time taken: {round(stop-start, 2)} seconds")
-    print(f"\nResponse:\n{response}")
+    # print(f"\nResponse: \n {response}")
+
+    for text in response['context']['texts']:
+        print(text.text, '\n\n')
+    for image in response['context']['images']:
+        ImageUtils.display_base64(image)
 
 if __name__ == "__main__":
     main()

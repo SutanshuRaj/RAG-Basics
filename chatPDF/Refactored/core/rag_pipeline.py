@@ -8,6 +8,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_core.messages import HumanMessage
 
+
 class RAGPipeline:
     def __init__(self, retriever, model_name="gpt-4o-mini"):
         self.retriever = retriever

@@ -10,16 +10,15 @@ class VectorStoreManager:
     def __init__(self):
         self.vector_store = Chroma(
             collection_name="multi_modal_rag",
-            embedding_function=OpenAIEmbeddings()
-        )
+            embedding_function=OpenAIEmbeddings())
+
         self.store = InMemoryStore()
         self.id_key = "doc_id"
         
         self.retriever = MultiVectorRetriever(
             vectorstore=self.vector_store,
             docstore=self.store,
-            id_key=self.id_key
-        )
+            id_key=self.id_key)
 
     def add_documents(self, documents: List[Any], summaries: List[str]) -> None:
         """Add documents and their summaries to the vector store."""
@@ -33,7 +32,7 @@ class VectorStoreManager:
         self.retriever.vectorstore.add_documents(summary_docs)
         self.retriever.docstore.mset(list(zip(doc_ids, documents)))
 
-    def add_images(self, images, summaries: List[str]) -> None:
+    def add_images(self, images: List[Any], summaries: List[str]) -> None:
         """Add images and their summaries to the vector store."""
         img_ids = [str(uuid.uuid4()) for _ in images]
         
